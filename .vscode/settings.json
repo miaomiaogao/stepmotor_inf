@@ -1,0 +1,10 @@
+
+{
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.generator": "CodeBlocks - Unix Makefiles",   
+    "cmake.buildDirectory": "${workspaceFolder}/build/cmake-build-vscode-${variant:buildType}",
+    "files.associations": {
+        "debug.h": "c",
+        "aes.h": "c"
+    },
+}
