@@ -111,7 +111,7 @@ void comm_motor_parameter_process(void)
         comm_pt->ready = false;
     } else if(strncmp(comm_pt->cache, "stop:(", strlen("stop:(")) == 0) { // stop command
         SR_DEBUG("stop cmd");
-        motor_stop();
+        motor_force_stop();
     } else { // ignore the command
         SR_DEBUG("invalid command ignored...");
     }

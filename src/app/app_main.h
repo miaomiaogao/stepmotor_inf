@@ -23,7 +23,7 @@ typedef enum {
 } motor_enable_type;
 
 typedef enum {
-    MOTOR_STEP_DEFAULT = GPIO_PIN_RESET,
+    MOTOR_STEP_DEFAULT = GPIO_PIN_SET,
     MOTOR_STEP_HIGH = GPIO_PIN_SET,
     MOTOR_STEP_LOW = GPIO_PIN_RESET,
 } motor_step_type;
@@ -48,6 +48,7 @@ void app_run(void);
 
 void motor_start(void);
 void motor_stop(void);
+void motor_force_stop(void);
 
 void config_motor(unsigned int RPM_NUM, motor_dir_type dir, unsigned int step);
 

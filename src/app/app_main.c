@@ -170,7 +170,7 @@ void motor_stop(void)
         motor_pt->enable = MOTOR_DISABLE;
         set_motor_enabled(motor_pt->enable);
     }
-    if(motor_pt->step_flag != MOTOR_STEP_DEFAULT) {
+    if(motor_pt->step_flag != MOTOR_STEP_DEFAULT || read_motor_step_pin() != MOTOR_STEP_DEFAULT) {
         motor_pt->step_flag = MOTOR_STEP_DEFAULT;
         set_motor_step_pin(motor_pt->step_flag);
     }
@@ -178,6 +178,14 @@ void motor_stop(void)
     motor_pt->step = 0;
 }
 
+/**
+ * @brief motor_force_stop
+ * 
+ */
+void motor_force_stop(void)
+{
+    motor_stop();
+}
 
 /**
  * @brief motor is running
