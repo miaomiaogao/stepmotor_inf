@@ -1,13 +1,5 @@
 #include "app_main.h"
 
-typedef struct {
-    unsigned int step_timer_period;
-    motor_step_type step_flag;
-    motor_enable_type enable;
-    bool timer_is_running;
-
-} motor_status_t;
-
 motor_status_t motor_data;
 motor_status_t *motor_pt = &motor_data;
 
@@ -50,7 +42,9 @@ void set_motor_enabled(motor_enable_type en)
  */
 void set_motor_step_pin(motor_step_type status)
 {
+    HAL_GPIO_WritePin(MOTOR_STEP_GPIO_Port, MOTOR_STEP_Pin, status);
     HAL_GPIO_WritePin(MOTOR_STEP_TEST_GPIO_Port, MOTOR_STEP_TEST_Pin, status);
+
 }
 
 motor_step_type read_motor_step_pin(void)
@@ -59,49 +53,6 @@ motor_step_type read_motor_step_pin(void)
     return status;
 }
 
-HAL_StatusTypeDef USER_TIM3_Init(void)
-{
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-    gHAL->step_timer->Instance = TIM3;
-    gHAL->step_timer->Init.Prescaler = (SystemCoreClock/1000000)-1;
-    gHAL->step_timer->Init.CounterMode = TIM_COUNTERMODE_UP;
-    gHAL->step_timer->Init.Period = motor_pt->step_timer_period * 1000 - 1;
-    gHAL->step_timer->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-    gHAL->step_timer->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-    if (HAL_TIM_Base_Init(gHAL->step_timer) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-    if (HAL_TIM_ConfigClockSource(gHAL->step_timer, &sClockSourceConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    if (HAL_TIMEx_MasterConfigSynchronization(gHAL->step_timer, &sMasterConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    return HAL_OK;
-
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-    if(htim->Instance == gHAL->step_timer->Instance) {
-        motor_pt->step_flag = MOTOR_STEP_HIGH;
-    }
-}
-
-void HAL_TIM_PeriodElapsedHalfCpltCallback(TIM_HandleTypeDef *htim)
-{
-    if(htim->Instance == gHAL->step_timer->Instance) {
-        motor_pt->step_flag = MOTOR_STEP_LOW;
-    }
-}
 
 void led_toggle_test(void)
 {
@@ -119,6 +70,8 @@ void led_toggle_test(void)
  * 
  * => one step period = (60 * 1000ms) / (PRM_NUM * 20) = 3000/PRM_NUM
  * 
+ * set the timer half of one step period
+ * 
  */
 
 void config_motor(unsigned int RPM_NUM, motor_dir_type dir)
@@ -134,10 +87,11 @@ void config_motor(unsigned int RPM_NUM, motor_dir_type dir)
         set_direction(dir);
     // set step period
     if(!motor_pt->timer_is_running) {
-        motor_pt->step_timer_period = 3000/rpmnum;
-        USER_TIM3_Init();
+        // motor_pt->step_timer_period = 3000/rpmnum * 1000;
+        motor_pt->step_timer_halfperiod = (3000/rpmnum * 1000) / 2;
+        step_timer_init();
         // start timer
-        HAL_TIM_Base_Start_IT(gHAL->step_timer);
+        step_timer_start();
         motor_pt->timer_is_running = true;
     }
 }
@@ -150,7 +104,8 @@ void motor_init(void)
 {
     motor_pt->enable = MOTOR_DISABLE;
     motor_pt->step_flag = 0;
-    motor_pt->step_timer_period = 3000/MAX_RPM_NUM;
+    // motor_pt->step_timer_period = (3000/MAX_RPM_NUM) * 1000;
+    motor_pt->step_timer_halfperiod = ((3000/MAX_RPM_NUM) * 1000)/ 2;
     set_motor_enabled(motor_pt->enable);
     set_direction(CLOCKWISE);
     motor_pt->timer_is_running = false;
