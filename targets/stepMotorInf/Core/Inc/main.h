@@ -63,6 +63,8 @@ void Error_Handler(void);
 #define MOTOR_DIR_GPIO_Port GPIOB
 #define MOTOR_STEP_Pin GPIO_PIN_7
 #define MOTOR_STEP_GPIO_Port GPIOB
+#define MOTOR_STEP_TEST_Pin GPIO_PIN_9
+#define MOTOR_STEP_TEST_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

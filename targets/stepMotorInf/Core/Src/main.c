@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "app/app_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -58,7 +58,8 @@ static void MX_TIM3_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+HAL_Context global_hal = {0,};      // Global HAL instance
+HAL_Context *gHAL = &global_hal;
 /* USER CODE END 0 */
 
 /**
@@ -92,13 +93,16 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-
+  gHAL->huart_dbg = &huart1;
+  gHAL->step_timer = &htim3;
+  app_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    app_run();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -162,7 +166,7 @@ static void MX_TIM3_Init(void)
 {
 
   /* USER CODE BEGIN TIM3_Init 0 */
-
+  return;
   /* USER CODE END TIM3_Init 0 */
 
   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
@@ -250,8 +254,11 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, MOTOR_ENABLE_Pin|MOTOR_DIR_Pin|MOTOR_STEP_Pin, GPIO_PIN_SET);
 
-  /*Configure GPIO pins : MOTOR_ENABLE_Pin MOTOR_DIR_Pin MOTOR_STEP_Pin */
-  GPIO_InitStruct.Pin = MOTOR_ENABLE_Pin|MOTOR_DIR_Pin|MOTOR_STEP_Pin;
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(MOTOR_STEP_TEST_GPIO_Port, MOTOR_STEP_TEST_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : MOTOR_ENABLE_Pin MOTOR_DIR_Pin MOTOR_STEP_Pin MOTOR_STEP_TEST_Pin */
+  GPIO_InitStruct.Pin = MOTOR_ENABLE_Pin|MOTOR_DIR_Pin|MOTOR_STEP_Pin|MOTOR_STEP_TEST_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
