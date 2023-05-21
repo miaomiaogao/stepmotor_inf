@@ -12,6 +12,7 @@
 typedef struct {
     UART_HandleTypeDef *huart_dbg;
     TIM_HandleTypeDef *step_timer;
+    IWDG_HandleTypeDef *iwdg;
 } HAL_Context;
 
 extern HAL_Context *gHAL;

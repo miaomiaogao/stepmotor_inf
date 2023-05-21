@@ -3,6 +3,23 @@
 motor_status_t motor_data;
 motor_status_t *motor_pt = &motor_data;
 
+/**
+ * @brief watchdog_pat
+ * 
+ * pres prescaler IWDG_PRESCALER_32 (IWDG_PRESCALER_4 to IWDG_PRESCALER_256)
+ * IWDG_RLR (12-bit value, 0 to 4095)
+ *
+ * T(iwdg) = T(lsi)*pres*(rlr+1)
+ * 
+ * LSI Clock (BOSCH_L071)37KHz => T(lsi) = 1/37000 = 27.03us
+ * T(iwdg) = T(lsi) * (4*2exp(IWDG_PRESCALER_32)) * (rlr + 1) = 1/37000 * 32 * 4096 = 3.542s
+ * 
+ */
+void watchdog_pat(void)
+{
+    if(gHAL->iwdg)
+        HAL_IWDG_Refresh(gHAL->iwdg);
+}
 
 /**
  * @brief Set the direction object
@@ -200,6 +217,7 @@ void app_init(void)
 void app_run(void)
 {
     interval_step();
+    watchdog_pat();
 
     /*
     if(fT100ms)
