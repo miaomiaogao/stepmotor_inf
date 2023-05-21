@@ -115,10 +115,8 @@ void config_motor(unsigned int RPM_NUM, motor_dir_type dir, unsigned int step)
     }
     if(motor_pt->rpm != rpmnum) {
         motor_pt->rpm = rpmnum;
-        if(motor_pt->timer_is_running) {
-            HAL_TIM_Base_DeInit(gHAL->step_timer);
-            motor_pt->timer_is_running = false;
-        }
+        HAL_TIM_Base_DeInit(gHAL->step_timer);
+        motor_pt->timer_is_running = false;
     }
 
     if(!motor_pt->timer_is_running) {

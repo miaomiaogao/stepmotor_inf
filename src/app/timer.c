@@ -31,15 +31,35 @@ void timer_register_internal_callbacks(TIM_HandleTypeDef *htim)
 
 HAL_StatusTypeDef step_timer_init(void)
 {
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+   TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+   TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+    /** Note:
+     * TIMx->ARR only support 16 bits, even the definition in the source code is uint32_t
+     * => If motor_pt->step_timer_halfperiod > 65535 then modify the prescaler and period to fit for the bits
+     * 
+    */
+    uint32_t prescaler, period, times_temp;
+
+    if(motor_pt->step_timer_halfperiod > 65535) {
+        times_temp = (motor_pt->step_timer_halfperiod >> 16) + 1; 
+        if(times_temp <= 0) times_temp = 1; // just in case
+        prescaler = (SystemCoreClock/1000000) * times_temp - 1;
+        period = motor_pt->step_timer_halfperiod / times_temp;
+    } else {
+        prescaler = (SystemCoreClock/1000000) - 1;
+        period = motor_pt->step_timer_halfperiod;
+    }
 
     gHAL->step_timer->Instance = TIM3;
-    gHAL->step_timer->Init.Prescaler = (SystemCoreClock/1000000)-1;
+    gHAL->step_timer->Init.Prescaler = prescaler;
     gHAL->step_timer->Init.CounterMode = TIM_COUNTERMODE_UP;
-    gHAL->step_timer->Init.Period = motor_pt->step_timer_halfperiod - 1;
+    gHAL->step_timer->Init.Period = period;
     gHAL->step_timer->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
     gHAL->step_timer->Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+    
+    __HAL_TIM_SET_COUNTER(gHAL->step_timer, 0);
+
     if (HAL_TIM_Base_Init(gHAL->step_timer) != HAL_OK)
     {
         Error_Handler();

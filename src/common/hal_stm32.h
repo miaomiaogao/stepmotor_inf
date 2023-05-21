@@ -6,6 +6,7 @@
 #include <main.h>
 
 #include "stm32l0xx_hal_uart.h"
+#include "stm32l0xx_hal_tim.h"
 #include "stm32l0xx_it.h"
 #include "stm32l071xx.h"
 
