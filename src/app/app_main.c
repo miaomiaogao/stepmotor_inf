@@ -108,8 +108,6 @@ void config_motor(unsigned int RPM_NUM, motor_dir_type dir, unsigned int step)
         // motor_pt->step_timer_period = 3000/rpmnum * 1000;
         motor_pt->step_timer_halfperiod = (3000/motor_pt->rpm * 1000) / 2;
         step_timer_init();
-        // start timer
-        step_timer_start();
         motor_pt->timer_is_running = true;
     }
 }
@@ -140,6 +138,8 @@ void motor_start(void)
     if(motor_pt->enable != MOTOR_ENABLE) {
         motor_pt->enable = MOTOR_ENABLE;
         set_motor_enabled(motor_pt->enable);
+        // start timer
+        step_timer_start();
     }
 }
 

@@ -3,10 +3,8 @@
 
 void USER_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-    HAL_TIM_Base_Stop_IT(htim);
-
     motor_pt->step_flag = !motor_pt->step_flag;
-    HAL_TIM_Base_Start_IT(htim);
+
 }
 
 /**
