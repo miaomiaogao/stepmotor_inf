@@ -121,7 +121,7 @@ void config_motor(unsigned int RPM_NUM, motor_dir_type dir, unsigned int step)
 void motor_init(void)
 {
     motor_pt->enable = MOTOR_DISABLE;
-    motor_pt->step_flag = 0;
+    motor_pt->step_flag = MOTOR_STEP_DEFAULT;
     motor_pt->dir = CLOCKWISE;
     // motor_pt->step_timer_period = (3000/MAX_RPM_NUM_SUPPORT) * 1000;
     motor_pt->step_timer_halfperiod = ((3000/MAX_RPM_NUM_SUPPORT) * 1000)/ 2;
@@ -153,6 +153,12 @@ void motor_stop(void)
         motor_pt->enable = MOTOR_DISABLE;
         set_motor_enabled(motor_pt->enable);
     }
+    if(motor_pt->step_flag != MOTOR_STEP_DEFAULT) {
+        motor_pt->step_flag = MOTOR_STEP_DEFAULT;
+        set_motor_step_pin(motor_pt->step_flag);
+    }
+    step_timer_stop();
+    motor_pt->step = 0;
 }
 
 
@@ -165,7 +171,7 @@ void motor_run(void)
     if(motor_pt->step > 0) {
         if(motor_pt->step_flag != read_motor_step_pin()) {
             set_motor_step_pin(motor_pt->step_flag);
-            if(motor_pt->step_flag == MOTOR_STEP_LOW)
+            if(motor_pt->step_flag == MOTOR_STEP_DEFAULT)
                 motor_pt->step--;
         }
     } else {

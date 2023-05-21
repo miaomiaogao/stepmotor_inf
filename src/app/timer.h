@@ -5,5 +5,5 @@
 
 HAL_StatusTypeDef step_timer_init(void);
 void step_timer_start(void);
-
+void step_timer_stop(void);
 #endif

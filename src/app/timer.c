@@ -65,7 +65,10 @@ HAL_StatusTypeDef step_timer_init(void)
 }
 
 
-
+void step_timer_stop(void)
+{
+    HAL_TIM_Base_Stop_IT(gHAL->step_timer);
+}
 
 void step_timer_start(void)
 {
