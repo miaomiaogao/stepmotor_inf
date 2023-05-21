@@ -74,21 +74,39 @@ void led_toggle_test(void)
  * 
  */
 
-void config_motor(unsigned int RPM_NUM, motor_dir_type dir)
+void config_motor(unsigned int RPM_NUM, motor_dir_type dir, unsigned int step)
 {
+
+    // set direction
+    if(motor_pt->dir != dir) {
+        motor_pt->dir = dir;
+        set_direction(motor_pt->dir);
+    }
+
+    // set steps
+    motor_pt->step = step;
+    if(motor_pt->step > MAX_STEPS_SUPPORT)
+        motor_pt->step = MAX_STEPS_SUPPORT;
+
+
+    // set step period
     unsigned int rpmnum = RPM_NUM;
-    if(rpmnum >= MAX_RPM_NUM) {
-        rpmnum = MAX_RPM_NUM;
+    if(rpmnum >= MAX_RPM_NUM_SUPPORT) {
+        rpmnum = MAX_RPM_NUM_SUPPORT;
     } else if(rpmnum < 1) {
         rpmnum = 1;
     }
-    // set direction
-    if(dir != read_motor_dir_pin())
-        set_direction(dir);
-    // set step period
+    if(motor_pt->rpm != rpmnum) {
+        motor_pt->rpm = rpmnum;
+        if(motor_pt->timer_is_running) {
+            HAL_TIM_Base_DeInit(gHAL->step_timer);
+            motor_pt->timer_is_running = false;
+        }
+    }
+
     if(!motor_pt->timer_is_running) {
         // motor_pt->step_timer_period = 3000/rpmnum * 1000;
-        motor_pt->step_timer_halfperiod = (3000/rpmnum * 1000) / 2;
+        motor_pt->step_timer_halfperiod = (3000/motor_pt->rpm * 1000) / 2;
         step_timer_init();
         // start timer
         step_timer_start();
@@ -104,10 +122,11 @@ void motor_init(void)
 {
     motor_pt->enable = MOTOR_DISABLE;
     motor_pt->step_flag = 0;
-    // motor_pt->step_timer_period = (3000/MAX_RPM_NUM) * 1000;
-    motor_pt->step_timer_halfperiod = ((3000/MAX_RPM_NUM) * 1000)/ 2;
+    motor_pt->dir = CLOCKWISE;
+    // motor_pt->step_timer_period = (3000/MAX_RPM_NUM_SUPPORT) * 1000;
+    motor_pt->step_timer_halfperiod = ((3000/MAX_RPM_NUM_SUPPORT) * 1000)/ 2;
     set_motor_enabled(motor_pt->enable);
-    set_direction(CLOCKWISE);
+    set_direction(motor_pt->dir);
     motor_pt->timer_is_running = false;
 
 }
@@ -116,14 +135,41 @@ void motor_init(void)
  * @brief motor_start
  * 
  */
-void motor_run(void)
+void motor_start(void)
 {
     if(motor_pt->enable != MOTOR_ENABLE) {
         motor_pt->enable = MOTOR_ENABLE;
         set_motor_enabled(motor_pt->enable);
     }
-    if(motor_pt->step_flag != read_motor_step_pin()) {
-        set_motor_step_pin(motor_pt->step_flag);
+}
+
+/**
+ * @brief motor_stop
+ * 
+ */
+void motor_stop(void)
+{
+    if(motor_pt->enable != MOTOR_DISABLE) {
+        motor_pt->enable = MOTOR_DISABLE;
+        set_motor_enabled(motor_pt->enable);
+    }
+}
+
+
+/**
+ * @brief motor is running
+ * 
+ */
+void motor_run(void)
+{
+    if(motor_pt->step > 0) {
+        if(motor_pt->step_flag != read_motor_step_pin()) {
+            set_motor_step_pin(motor_pt->step_flag);
+            if(motor_pt->step_flag == MOTOR_STEP_LOW)
+                motor_pt->step--;
+        }
+    } else {
+        motor_stop();
     }
 }
 
@@ -135,7 +181,7 @@ void app_init(void)
 {
     interval_init();
     motor_init();
-
+    app_comm_init();
     SR_DEBUG(" TEST STEP MOTOR ");
 
 }
@@ -154,8 +200,9 @@ void app_run(void)
         led_toggle_test();
     */
 
-    config_motor(MAX_RPM_NUM, CLOCKWISE);
+    if(motor_pt->timer_is_running)
+        motor_run();
 
-    motor_run();
+    app_comm_sm();
 
 }

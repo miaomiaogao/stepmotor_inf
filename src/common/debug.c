@@ -15,3 +15,25 @@ void SR_DEBUG(const char *str)
         str_ptr++;
     }
 }
+
+int pm_isdigit(char ch)
+{
+    return ('0' <= ch) && (ch <= '9');
+}
+
+int pm_atoi(const char *s)
+{
+    int result = 0;
+    int sign = 1;
+    if(s) {
+        if(*s == '-') {
+            sign = -1;
+            s++;
+        }
+        while(*s) {
+            if (!pm_isdigit(*s)) break;
+            result = result * 10 + (*s++ - '0');
+        }
+    }
+    return sign*result;
+}
